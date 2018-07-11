@@ -43,7 +43,7 @@ app.post('/', (request, response) => {
 
         //Crear Token
         var token = jwt.sign({ usuario: usuarioDB },
-            SEED, { expiresIn: 14400 } //4 horas
+            SEED, { expiresIn: 144000 } //4 horas
         );
 
 

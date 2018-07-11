@@ -1,25 +1,25 @@
 // Requires
 var express = require('express');
-var bcrypt = require('bcryptjs');
 
 var mdAutenticacion = require('../middleware/autenticacion');
 
 var app = express();
 
 
-var Usuario = require('../models/usuario');
+var Hospital = require('../models/hospital');
 
 // ========================================
-//      Obtener todos los usuarios
+//      Obtener todos los Hospitales
 // ========================================
 app.get('/', (request, response, next) => {
 
     var desde = request.query.desde || 0;
     desde = Number(desde);
 
-    Usuario.find({}, 'nombre email img role')
+    Hospital.find({})
         .skip(desde)
         .limit(5)
+        .populate('usuario', 'nombre email')
         .exec(
             (error, data) => {
 
@@ -31,12 +31,12 @@ app.get('/', (request, response, next) => {
                     });
                 }
 
-                Usuario.count({}, (error, conteo) => {
+                Hospital.count({}, (error, conteo) => {
                     response.status(200).json({
                         ok: true,
-                        mensaje: 'Peticion GET de Usuarios',
-                        usuarios: data,
-                        total: conteo
+                        mensaje: 'Peticion GET de Hospitales',
+                        hospitals: data,
+                        total: conteo,
                     });
                 });
 
@@ -48,92 +48,84 @@ app.get('/', (request, response, next) => {
 
 
 
+
+
 // ========================================
-//      Actualizar Usuario
+//      Actualizar Hospital
 // ========================================
 app.put('/:id', mdAutenticacion.verificaToken, (request, response) => {
 
     var id = request.params.id;
     var body = request.body;
 
-    Usuario.findById(id, (error, usuario) => {
+    Hospital.findById(id, (error, hospital) => {
 
         if (error) {
             return response.status(500).json({
                 ok: false,
-                mensaje: 'Error al buscar usuario',
+                mensaje: 'Error al buscar hospital',
                 errors: error
             });
         }
-        if (!usuario) {
+        if (!hospital) {
             return response.status(400).json({
                 ok: false,
-                mensaje: 'El Usuario con el id:' + id + 'no existe',
-                errors: { message: 'No existe un usuario con ese ID' }
+                mensaje: 'El Hospital con el id:' + id + 'no existe',
+                errors: { message: 'No existe un hospital con ese ID' }
             });
         }
 
-        usuario.nombre = body.nombre;
-        usuario.email = body.email;
-        usuario.role = body.role;
+        hospital.nombre = body.nombre;
+        hospital.usuario = request.usuario;
 
-        usuario.save((error, usuarioGuardado) => {
+        hospital.save((error, hospitalGuardado) => {
             if (error) {
                 return response.status(400).json({
                     ok: false,
-                    mensaje: 'Error al actualizar usuario',
+                    mensaje: 'Error al actualizar hospital',
                     errors: error
                 });
             }
-            usuarioGuardado.password = ':)';
 
             response.status(200).json({
                 ok: true,
-                mensaje: 'Usuario actualizado exitosamente',
-                usuario: usuarioGuardado
+                mensaje: 'Hospital actualizado exitosamente',
+                hospital: hospitalGuardado
             });
         });
 
-
-
-
-
     });
-
 
 });
 
 
 // ========================================
-//      Crear un nuevo Usuario
+//      Crear un nuevo Hospital
 // ========================================
 app.post('/', mdAutenticacion.verificaToken, (request, response) => {
 
     var body = request.body;
 
-    var usuario = new Usuario({
+    var hospital = new Hospital({
         nombre: body.nombre,
-        email: body.email,
-        password: bcrypt.hashSync(body.password, 10),
-        img: body.img,
-        role: body.role,
+        usuario: request.usuario,
     });
 
 
 
-    usuario.save((error, data) => {
+    hospital.save((error, hospitalGuardado) => {
 
         if (error) {
             return response.status(400).json({
                 ok: false,
-                mensaje: 'Error al crear usuario',
+                mensaje: 'Error al crear el hospital',
                 errors: error
             });
         }
         response.status(201).json({
             ok: true,
-            mensaje: 'Usuario creado exitosamente',
-            usuario: data
+            mensaje: 'Hospital creado exitosamente',
+            hospital: hospitalGuardado
         });
 
     });
@@ -142,32 +134,32 @@ app.post('/', mdAutenticacion.verificaToken, (request, response) => {
 
 
 // ========================================
-//      Eliminar Usuario
+//      Eliminar Hospital
 // ========================================
 app.delete('/:id', mdAutenticacion.verificaToken, (request, response) => {
 
     var id = request.params.id;
 
-    Usuario.findByIdAndRemove(id, (error, usuarioBorrado) => {
-        if (!usuarioBorrado) {
+    Hospital.findByIdAndRemove(id, (error, hospitalBorrado) => {
+        if (!hospitalBorrado) {
             return response.status(400).json({
                 ok: false,
-                mensaje: 'No existe un usuario con ese ID',
-                errors: { message: 'Error al borrar el usuario' }
+                mensaje: 'No existe un hospital con ese ID',
+                errors: { message: 'Error al borrar el hospital' }
             });
         }
         if (error) {
             return response.status(500).json({
                 ok: false,
-                mensaje: 'Error al borrar usuario',
+                mensaje: 'Error al borrar hospital',
                 errors: error
             });
         }
 
         response.status(200).json({
             ok: true,
-            mensaje: 'Usuario borrado exitosamente',
-            usuario: usuarioBorrado
+            mensaje: 'Hospital borrado exitosamente',
+            hospital: hospitalBorrado
         });
     });
 
