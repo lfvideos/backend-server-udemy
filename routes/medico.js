@@ -36,7 +36,7 @@ app.get('/', (request, response, next) => {
                     response.status(200).json({
                         ok: true,
                         mensaje: 'Peticion GET de medicos',
-                        medico: data,
+                        medicos: data,
                         total: conteo,
                     });
                 });
@@ -171,5 +171,42 @@ app.delete('/:id', mdAutenticacion.verificaToken, (request, response) => {
 });
 
 
+// ========================================
+//      Eliminar Medico
+// ========================================
+app.get('/:id', (request, response, next) => {
+
+    var id = request.params.id;
+    Medico.findById(id, 'nombre img usuario hospital')
+
+    .populate('usuario', 'nombre email img')
+        .populate('hospital')
+        .exec(
+            (error, medico) => {
+
+                if (error) {
+                    return response.status(500).json({
+                        ok: false,
+                        mensaje: 'Error al buscar medico',
+                        errors: error
+                    });
+                }
+                if (!medico) {
+                    return response.status(400).json({
+                        ok: false,
+                        mensaje: 'El Medico con el id:' + id + 'no existe',
+                        errors: { message: 'No existe un medico con ese ID' }
+                    });
+                }
+
+
+                return response.status(200).json({
+                    ok: true,
+                    medico: medico,
+                });
+
+            });
+
+});
 
 module.exports = app;

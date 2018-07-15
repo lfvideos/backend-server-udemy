@@ -59,7 +59,7 @@ app.post('/', (request, response) => {
         response.status(200).json({
             ok: true,
             mensaje: 'Login Post Correcto',
-            data: usuarioDB,
+            usuario: usuarioDB,
             id: usuarioDB._id,
             token: token,
         });
@@ -130,10 +130,10 @@ app.post('/google', async(request, response) => {
                 );
 
 
-                response.status(200).json({
+                return response.status(200).json({
                     ok: true,
                     mensaje: 'Login Post Correcto',
-                    data: usuarioDB,
+                    usuario: usuarioDB,
                     id: usuarioDB._id,
                     token: token,
                 });
@@ -146,11 +146,15 @@ app.post('/google', async(request, response) => {
             usuario.google = true;
             usuario.password = ":)";
 
+            var token = jwt.sign({ usuario: usuarioDB },
+                SEED, { expiresIn: 144000 } //4 horas
+            );
+
             usuario.save((error, usuarioDB) => {
-                response.status(200).json({
+                return response.status(200).json({
                     ok: true,
                     mensaje: 'Login Post Correcto',
-                    data: usuarioDB,
+                    usuario: usuarioDB,
                     id: usuarioDB._id,
                     token: token,
                 });
