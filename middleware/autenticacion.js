@@ -27,3 +27,43 @@ exports.verificaToken = function(request, response, next) {
     });
 
 }
+
+
+// ========================================
+//      Verificar ADMIN
+// ========================================
+exports.verificaADMIN = function(request, response, next) {
+
+    var usuario = request.usuario;
+    if (usuario.role == "ADMIN_ROLE") {
+        next();
+        return;
+    } else {
+        return response.status(401).json({
+            ok: false,
+            mensaje: 'Error de Privilegios',
+        });
+    }
+
+}
+
+
+// ========================================
+//      Verificar ADMIN o Mismo Usuario
+// ========================================
+exports.verificaADMIN_o_MismoUsuario = function(request, response, next) {
+
+    var usuario = request.usuario;
+    var id = request.params.id;
+
+    if (usuario.role == "ADMIN_ROLE" || usuario._id == id) {
+        next();
+        return;
+    } else {
+        return response.status(401).json({
+            ok: false,
+            mensaje: 'Error de Privilegios',
+        });
+    }
+
+}
